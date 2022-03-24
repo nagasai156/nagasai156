@@ -1,10 +1,51 @@
-- 👋 Hi, I’m @nagasai156
-- 👀 I’m interested in ...
-- 🌱 I’m currently learning ...
-- 💞️ I’m looking to collaborate on ...
-- 📫 How to reach me ...
+import cv2
+import numpy as np
+from matplotlib import pyplot as plt
 
-<!---
-nagasai156/nagasai156 is a ✨ special ✨ repository because its `README.md` (this file) appears on your GitHub profile.
-You can click the Preview link to take a look at your changes.
---->
+img = cv2.imread('F:/internship/FeedPellet5.jpg',0)   # add file path
+
+
+thresh = cv2.threshold(img,60,255,cv2.THRESH_BINARY_INV)[1]
+cv2.imshow('Binary Threshold Inverted', thresh)
+
+#thresh = cv2.threshold(img,60,255,cv2.THRESH_BINARY)[1]
+hist = cv2.calcHist([img],[0],None,[256],[0,256])
+
+black_area = np.true_divide(hist[0],np.prod(img.shape))[0]*100
+kernel = np.ones((3,3),np.uint8)
+
+opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+contours = cv2.findContours(opening, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[0]
+
+blank_image = np.zeros((img.shape),np.uint8)
+image_area = np.prod(img.shape)
+
+count=0
+for i,c in enumerate(contours[::-1]):
+
+    blank_image *= 0
+
+    cv2.drawContours(blank_image, [c], 0, (255), thickness=cv2.FILLED)
+
+    contour_area = cv2.contourArea(c)
+
+    contour_area_pc = np.true_divide(int(contour_area),image_area)*100 if int(contour_area) > 1  else 0
+   
+   
+    plt.imshow(blank_image, cmap = 'gray', interpolation = 'bicubic')
+    plt.xticks([]), plt.yticks([])  
+    plt.show()
+   
+    print(contour_area)
+    print(contour_area_pc)
+   
+    count=count+(contour_area_pc/ area)    # here replace the area value with the average size value of pellets
+print("total count of pellets is " ,count)
+
+
+
+
+if cv2.waitKey(0) & 0xff == 27:
+    cv2.destroyAllWindows()
+
+
